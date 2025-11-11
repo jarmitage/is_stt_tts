@@ -20,8 +20,14 @@ Usage examples:
 
  - STT (save transcript):
   is-speech stt --audio_file sample.mp3 --output_file sample.txt
+ 
+ - STT (play input when transcript prints):
+  is-speech stt --audio_file sample.mp3 --play
 """
 from __future__ import annotations
+
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv(usecwd=True))
 
 import json
 import shutil
@@ -251,6 +257,7 @@ class ISCLI:
         audio_file: str,
         model_path: str = DEFAULT_IS_MODEL_PATH,
         output_file: Optional[str] = None,
+        play: bool = False,
     ) -> None:
         """
         Icelandic STT using mlx_whisper.
@@ -259,6 +266,7 @@ class ISCLI:
             audio_file: Path to audio file (e.g. .mp3, .wav).
             model_path: Path or HF repo to mlx whisper IS model.
             output_file: If set, write transcript to this file; otherwise print to stdout.
+            play: If True, play the input audio when a non-empty transcript is printed/written.
         """
         import mlx_whisper
 
@@ -287,6 +295,11 @@ class ISCLI:
             print(f"Wrote transcript: {out_path}")
         else:
             print(transcript)
+
+        # If requested and speech was detected (non-empty transcript),
+        # start playing the original input file after printing/writing.
+        if play and transcript:
+            _play_audio(audio_path)
 
     def _maybe_convert_m4a_to_wav_ffmpeg(self, audio_path: Path) -> tuple[Path, Optional[Path]]:
         """

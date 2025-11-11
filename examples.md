@@ -139,4 +139,10 @@ is-speech tts --text 'Halló, þetta er prófun.' --output_dir ./out --filename 
 is-speech stt --audio_file ./out/combo.mp3 --output_file ./transcripts/combo.txt
 ```
 
+21) STT: play input when transcript prints
+
+```bash
+is-speech stt --audio_file ./audio/clip.mp3 --play
+```
+
 

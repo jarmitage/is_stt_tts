@@ -4,6 +4,7 @@ keys
 
 # data
 data/**/*.mp3
+output.mp3
 
 # macOS
 .DS_Store

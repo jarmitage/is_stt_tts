@@ -79,6 +79,11 @@ is-speech stt --audio_file sample.mp3
 is-speech stt --audio_file sample.mp3 --output_file sample.txt
 ```
 
+### STT (play input when transcript prints)
+```bash
+is-speech stt --audio_file sample.mp3 --play
+```
+
 ## Notes
 - Playback uses `afplay` on macOS if available.
 - Default STT model path points to your local MLX Whisper IS model: `IS_SPEECH_CLI_IS_MODEL_PATH`. Override with `--model_path` as needed.
