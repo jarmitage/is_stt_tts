@@ -52,6 +52,8 @@ Note: Icespeak will read credentials from `ICESPEAK_KEYS_DIR`; this project does
 
 ## Usage
 
+See [examples.md](examples.md) for more.
+
 ### TTS (Dora)
 ```bash
 is-speech tts --text 'Halló heimur' --voice Dora --mode save
