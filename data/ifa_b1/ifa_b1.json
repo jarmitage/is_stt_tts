@@ -1,0 +1,142 @@
+[
+  {
+    "Q_IS": "Hvað heitir þú?",
+    "Q_EN": "What is your name?",
+    "A_IS": "Ég heiti Jack"
+  },
+  {
+    "Q_IS": "Hvernig stafar þú nafnið þitt?",
+    "Q_EN": "How do you spell your name?",
+    "A_IS": "Ég stafa nafnið mitt joð a sjé ká"
+  },
+  {
+    "Q_IS": "Hvaðan ertu?",
+    "Q_EN": "Where are you from?",
+    "A_IS": "Ég er frá England"
+  },
+  {
+    "Q_IS": "Hvaða mál talar þú?",
+    "Q_EN": "What language do you speak?",
+    "A_IS": "Ég tala Ensku"
+  },
+  {
+    "Q_IS": "Hvað segir þú gott?",
+    "Q_EN": "What do you say well?",
+    "A_IS": "Ég segi allt fint bara"
+  },
+  {
+    "Q_IS": "Kanntu að keyra bíl?",
+    "Q_EN": "Can you drive a car?",
+    "A_IS": "Já, ég kann keyra bil"
+  },
+  {
+    "Q_IS": "Ertu að vinna?",
+    "Q_EN": "Are you working?",
+    "A_IS": "Já, ég vinn í hugbúnaði"
+  },
+  {
+    "Q_IS": "Hvernig finnst þér í vinnunni?",
+    "Q_EN": "How do you feel at work?",
+    "A_IS": "Mér finnst það mjög áhugavert"
+  },
+  {
+    "Q_IS": "Hvað ertu að gera núna?",
+    "Q_EN": "What are you doing now?",
+    "A_IS": "Ég er að læra íslensku núna"
+  },
+  {
+    "Q_IS": "Hvað varst þú að gera í gær?",
+    "Q_EN": "What were you doing yesterday?",
+    "A_IS": "Ég var í heimsókn hjá vini í gær"
+  },
+  {
+    "Q_IS": "Hvað ætlar þú að gera á morgun?",
+    "Q_EN": "What are you going to do tomorrow?",
+    "A_IS": "Á morgun fer ég til Reykjavíkur"
+  },
+  {
+    "Q_IS": "Hver er kennitalan þín?",
+    "Q_EN": "What is your social security number?",
+    "A_IS": "Kennitalan mín er tuttugu og fimm núll sjö níutíu og eitt fimmtíu og fimm sextíu og níu"
+  },
+  {
+    "Q_IS": "Hvað er símanúmerið þitt?",
+    "Q_EN": "What is your phone number?",
+    "A_IS": "Símanúmerið mitt er sjö átta níu átta níu fjórir þrír"
+  },
+  {
+    "Q_IS": "Hvar áttu heima?",
+    "Q_EN": "Where do you live?",
+    "A_IS": "Ég á heima í Laugar í Reykjadal"
+  },
+  {
+    "Q_IS": "Klukkan hvað ferðu að sofa?",
+    "Q_EN": "What time do you go to bed?",
+    "A_IS": "Ég fer að sofa klukkan hálf ellefu venjulega"
+  },
+  {
+    "Q_IS": "Hvaða dagur og dagsetning er í dag?",
+    "Q_EN": "What day and date is today?",
+    "A_IS": "Í dag er tuttugasti og sjöundi september"
+  },
+  {
+    "Q_IS": "Hvenær áttu afmæli?",
+    "Q_EN": "When is your birthday?",
+    "A_IS": "Ég á afmæli tuttugasti og annar júní"
+  },
+  {
+    "Q_IS": "Hvenær komstu til Íslands?",
+    "Q_EN": "When did you come to Iceland?",
+    "A_IS": "Ég kom til Íslands árið tvö þúsund tuttugo og tveir"
+  },
+  {
+    "Q_IS": "Áttu börn?",
+    "Q_EN": "Do you have children?",
+    "A_IS": "Nei, ég á ekki börn."
+  },
+  {
+    "Q_IS": "Horfir þú oft á sjónvarpið?",
+    "Q_EN": "Do you often watch TV?",
+    "A_IS": "Nei, ég horfi ekki"
+  },
+  {
+    "Q_IS": "Hvað borðar þú í morgunmat?",
+    "Q_EN": "What do you eat for breakfast?",
+    "A_IS": "Ég borða granola með jógúrt"
+  },
+  {
+    "Q_IS": "Hvaða matur finnst þér góður?",
+    "Q_EN": "What food do you like?",
+    "A_IS": "Mér finnst hollur og ferskur matur góður"
+  },
+  {
+    "Q_IS": "Hvar er kötturinn?",
+    "Q_EN": "Where is the cat?",
+    "A_IS": "Hann er sefur á sófanum"
+  },
+  {
+    "Q_IS": "Hvað þarftu að gera í dag?",
+    "Q_EN": "What do you have to do today?",
+    "A_IS": "Í dag fer ég í sundlaugina með vinum mínum"
+  },
+  {
+    "Q_IS": "Hvað langar þig að gera á morgun?",
+    "Q_EN": "What do you want to do tomorrow?",
+    "A_IS": "Á morgun vil ég sjá vini mína í Reykjavík"
+  },
+  {
+    "Q_IS": "Hvernig líður þér?",
+    "Q_EN": "How do you feel?",
+    "A_IS": "Mér líður þakklát fyrir lífið"
+  },
+  {
+    "Q_IS": "Ertu stundum þreyttur / þreytt?",
+    "Q_EN": "Are you sometimes tired / tired?",
+    "A_IS": "Já, ég er stundum þreyttur"
+  },
+  {
+    "Q_IS": "Ertu ánægður / ánægð á Íslandi?",
+    "Q_EN": "Are you happy / happy in Iceland?",
+    "A_IS": "Já, ég er hamingjusöm á Íslandi"
+  }
+]

@@ -1,0 +1,66 @@
+# data
+data/**/*.mp3
+
+# macOS
+.DS_Store
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.cache/
+coverage.xml
+
+# Type checking
+.mypy_cache/
+.pyre/
+.pytype/
+
+# Editors / IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+
+# Hatch / build metadata (kept minimal since we use dist/)
+*.dist-info/
+
+# Logs
+*.log
+
+

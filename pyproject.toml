@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling>=1.21.1"]
+build-backend = "hatchling.build"
+
+[project]
+name = "is-speech-cli"
+version = "0.1.0"
+description = "Minimal Icelandic TTS/STT CLI using Icespeak and MLX Whisper."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "jarm" }]
+keywords = ["tts", "stt", "icelandic", "speech", "cli", "whisper", "mlx", "icespeak"]
+dependencies = [
+  "fire>=0.6",
+  "mlx-whisper>=0.4",
+  "icespeak>=0.1"
+]
+
+[project.scripts]
+is-speech = "is_speech_cli.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/is_speech_cli"]
+
+
