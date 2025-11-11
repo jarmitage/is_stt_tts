@@ -59,6 +59,11 @@ See [examples.md](examples.md) for more.
 is-speech tts --text 'Halló heimur' --voice Dora --mode save
 ```
 
+### TTS (play and save in one go)
+```bash
+is-speech tts --text 'Halló' --voice Dora --mode 'play,save'
+```
+
 ### TTS (Karl)
 ```bash
 is-speech tts --input_file note.txt --voice Karl --output_dir out --filename greeting
@@ -77,5 +82,6 @@ is-speech stt --audio_file sample.mp3 --output_file sample.txt
 ## Notes
 - Playback uses `afplay` on macOS if available.
 - Default STT model path points to your local MLX Whisper IS model: `IS_SPEECH_CLI_IS_MODEL_PATH`. Override with `--model_path` as needed.
+- `--mode` accepts a single value (`save` or `play`), a comma-list like `'play,save'`, or the legacy alias `both`.
 
 

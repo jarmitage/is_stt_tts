@@ -1,7 +1,7 @@
 # TODO
 
 ## Input/output
-- [ ] Play immediately
+- [x] Play immediately
 - [ ] Microphone input for STT
 
 ## Translation

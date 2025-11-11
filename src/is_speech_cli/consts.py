@@ -10,7 +10,7 @@ SUPPORTED_MODES = {"save", "play", "both"}
 # Defaults
 DEFAULT_TTS_VOICE = "Dora"
 DEFAULT_AUDIO_FORMAT = "mp3"
-DEFAULT_MODE = "save"
+DEFAULT_MODE = "play"
 DEFAULT_OUTPUT_DIR = "."
 DEFAULT_FILENAME = "output"
 

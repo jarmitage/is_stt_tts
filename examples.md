@@ -14,10 +14,10 @@ is-speech tts --text 'Halló heimur' --voice Dora --mode save
 is-speech tts --text 'Góða nótt' --voice Karl --mode play
 ```
 
-3) TTS save and then play (both), custom filename
+3) TTS save and then play (comma-list), custom filename
 
 ```bash
-is-speech tts --text 'Hvernig hefur þú það?' --voice Dora --mode both --filename greeting_is
+is-speech tts --text 'Hvernig hefur þú það?' --voice Dora --mode 'play,save' --filename greeting_is
 ```
 
 4) TTS from a text file, custom output directory

@@ -12,6 +12,9 @@ Usage examples:
  - TTS (Karl):
   is-speech tts --input_file note.txt --voice Karl --output_dir out --filename greeting
 
+ - TTS (play and save using comma-list):
+  is-speech tts --text 'Halló' --voice Dora --mode 'play,save'
+
  - STT (print transcript):
   is-speech stt --audio_file sample.mp3
 
@@ -25,7 +28,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional, Any, Iterable
 import tempfile
 from uuid import uuid4
 
@@ -57,6 +60,58 @@ def _validate_mode(mode: str) -> str:
     if normalized not in {m.lower() for m in SUPPORTED_MODES}:
         raise ValueError(f"mode must be one of: {', '.join(sorted(SUPPORTED_MODES))}")
     return normalized
+
+
+def _parse_modes(mode_arg: Any) -> set[str]:
+    """
+    Parse mode argument which may be:
+    - a string: "save", "play", "both", or comma-separated like "play,save"
+    - an iterable of strings (e.g., tuple/list from Fire): ("play","save")
+    Returns a normalized set of modes containing any of {"save","play"}.
+    Accepts "both" as an alias for {"save","play"} for backward compatibility.
+    """
+    def normalize_item(item: str) -> set[str]:
+        val = (item or "").strip().lower()
+        if not val:
+            return set()
+        if val == "both":
+            return {"save", "play"}
+        if val in {"save", "play"}:
+            return {val}
+        if val in {m.lower() for m in SUPPORTED_MODES}:
+            return {val}
+        raise ValueError(f"mode must be one or more of: {', '.join(sorted(SUPPORTED_MODES))}")
+
+    if mode_arg is None:
+        return {DEFAULT_MODE}
+
+    if isinstance(mode_arg, str):
+        parts = [p for p in (mode_arg.split(",") if "," in mode_arg else [mode_arg])]
+        result: set[str] = set()
+        for p in parts:
+            result |= normalize_item(p)
+        return (result or {DEFAULT_MODE}) if result else {DEFAULT_MODE}
+
+    if isinstance(mode_arg, Iterable):
+        result: set[str] = set()
+        for item in mode_arg:
+            if isinstance(item, str):
+                result |= normalize_item(item)
+            else:
+                raise ValueError("mode iterable must contain strings")
+        if not result:
+            return {DEFAULT_MODE}
+        canonical = set()
+        for v in result:
+            if v == "both":
+                canonical |= {"save", "play"}
+            elif v in {"save", "play"}:
+                canonical.add(v)
+        if not canonical:
+            raise ValueError("mode must include at least one of: save, play")
+        return canonical
+
+    raise ValueError("Invalid mode value; expected string or iterable of strings")
 
 
 def _validate_audio_format(audio_format: str) -> str:
@@ -116,7 +171,7 @@ class ISCLI:
         audio_format: str = DEFAULT_AUDIO_FORMAT,
         output_dir: str = DEFAULT_OUTPUT_DIR,
         filename: str = DEFAULT_FILENAME,
-        mode: str = DEFAULT_MODE,
+        mode: Any = DEFAULT_MODE,
     ) -> None:
         """
         Icelandic TTS using Icespeak.
@@ -128,12 +183,17 @@ class ISCLI:
             audio_format: 'mp3' or 'wav'. Default: 'mp3'.
             output_dir: Directory to write the audio file. Default: current directory.
             filename: Base filename without extension. Default: 'output'.
-            mode: 'save', 'play', or 'both'. Default: 'save'.
+            mode: One or more of 'save', 'play'. You can pass:
+                  - a single value: 'save' or 'play'
+                  - 'both' (back-compat alias for 'play'+'save')
+                  - a comma-list: 'play,save'
+                  - an iterable (e.g., --mode play,save parsed by Fire as tuple)
+                  Default: 'save'.
         """
         from icespeak import TTSOptions, tts_to_file
 
         selected_voice = _validate_voice(voice)
-        selected_mode = _validate_mode(mode)
+        selected_modes = _parse_modes(mode)
         selected_format = _validate_audio_format(audio_format)
 
         text_content = _read_text_input(text, input_file)
@@ -152,25 +212,39 @@ class ISCLI:
         if not src_path:
             raise RuntimeError("Icespeak did not return an output file path.")
 
-        dest_dir = Path(output_dir).expanduser()
-        dest_dir.mkdir(parents=True, exist_ok=True)
-        dest_path = dest_dir / f"{filename}.{selected_format}"
+        do_save = "save" in selected_modes
+        do_play = "play" in selected_modes
 
-        try:
-            if src_path.resolve() != dest_path.resolve():
-                if dest_path.exists():
-                    dest_path.unlink()
-                shutil.move(str(src_path), str(dest_path))
-        finally:
-            pass
+        dest_path: Optional[Path] = None
+        if do_save:
+            dest_dir = Path(output_dir).expanduser()
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            dest_path = dest_dir / f"{filename}.{selected_format}"
+            try:
+                if src_path.resolve() != dest_path.resolve():
+                    if dest_path.exists():
+                        dest_path.unlink()
+                    shutil.move(str(src_path), str(dest_path))
+            finally:
+                pass
 
         normalized_text = getattr(tts_out, "text", "")
-        print(f"Saved: {dest_path}")
+        if do_save and dest_path is not None:
+            print(f"Saved: {dest_path}")
         if normalized_text:
             print(f"Text (normalized by Icespeak): {normalized_text}")
 
-        if selected_mode in {"play", "both"}:
-            _play_audio(dest_path)
+        if do_play:
+            path_to_play = dest_path if (do_save and dest_path is not None) else src_path
+            try:
+                _play_audio(path_to_play)
+            finally:
+                if not do_save:
+                    try:
+                        if src_path.exists():
+                            src_path.unlink()
+                    except Exception:
+                        pass
 
     def stt(
         self,
