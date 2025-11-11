@@ -4,6 +4,9 @@ import types
 import tempfile
 from contextlib import redirect_stdout
 from pathlib import Path
+import shutil
+import os
+import json
 import unittest
 
 # Ensure the package src is importable without installing
@@ -37,10 +40,12 @@ def make_icespeak_stub(temp_audio_path: Path, normalized_text: str = "normalized
     return m
 
 
-def make_mlx_stub(return_text: str = "Halló") -> types.ModuleType:
+def make_mlx_stub(return_text: str = "Halló", capture_list: list[str] | None = None) -> types.ModuleType:
     m = types.ModuleType("mlx_whisper")
 
     def transcribe(audio_file: str, path_or_hf_repo: str):
+        if capture_list is not None:
+            capture_list.append(audio_file)
         return {"text": return_text}
 
     m.transcribe = transcribe
@@ -116,6 +121,14 @@ class TestISCLITTS(unittest.TestCase):
 
 
 class TestISCLISTT(unittest.TestCase):
+    def _load_ifa_entries(self):
+        data_dir = BASE_DIR / "data" / "ifa_b1"
+        json_path = data_dir / "ifa_b1.json"
+        if not json_path.exists():
+            self.skipTest("ifa_b1.json not present")
+        entries = json.loads(json_path.read_text(encoding="utf-8"))
+        return data_dir, entries
+
     def test_stt_prints_transcript(self):
         iscli = cli_module.ISCLI()
         with tempfile.TemporaryDirectory() as td:
@@ -141,29 +154,34 @@ class TestISCLISTT(unittest.TestCase):
             self.assertTrue(out_txt.exists(), "Transcript file not written")
             self.assertEqual(out_txt.read_text(encoding="utf-8"), "Halló\n")
 
-    def test_stt_m4a_converts_via_helper_and_cleans_up(self):
-        iscli = cli_module.ISCLI()
-        with tempfile.TemporaryDirectory() as td:
-            td_path = Path(td)
-            audio_m4a = td_path / "audio.m4a"
-            audio_m4a.write_bytes(b"")
-            tmp_wav = td_path / "converted.wav"
-            tmp_wav.write_bytes(b"")  # simulate ffmpeg output
+    def test_stt_m4a_uses_ffmpeg_and_cleans_up(self):
+        """
+        If ffmpeg is available and an .m4a sample is present under data/ifa_b1,
+        verify conversion happens (mlx receives a .wav) and the temp file is removed.
+        """
+        if shutil.which("ffmpeg") is None:
+            self.skipTest("ffmpeg not available on PATH")
+        data_dir = BASE_DIR / "data" / "ifa_b1"
+        if not data_dir.exists():
+            self.skipTest("No sample data directory present")
+        m4a_files = sorted([p for p in data_dir.rglob("*.m4a")])
+        if not m4a_files:
+            self.skipTest("No .m4a sample files found")
+        audio_m4a = m4a_files[0]
 
-            # Monkeypatch helper to avoid calling real ffmpeg
-            original_helper = cli_module.ISCLI._maybe_convert_m4a_to_wav_ffmpeg
-            try:
-                def fake_helper(_self, p):
-                    return tmp_wav, tmp_wav
-                cli_module.ISCLI._maybe_convert_m4a_to_wav_ffmpeg = fake_helper
-                sys.modules["mlx_whisper"] = make_mlx_stub("transcript")
-                out = io.StringIO()
-                with redirect_stdout(out):
-                    iscli.stt(audio_file=str(audio_m4a), model_path=str(td_path / "model"))
-                self.assertFalse(tmp_wav.exists(), "Temporary converted file was not cleaned up")
-                self.assertIn("transcript", out.getvalue())
-            finally:
-                cli_module.ISCLI._maybe_convert_m4a_to_wav_ffmpeg = original_helper
+        iscli = cli_module.ISCLI()
+        captured = []
+        sys.modules["mlx_whisper"] = make_mlx_stub("transcript", capture_list=captured)
+
+        out = io.StringIO()
+        with redirect_stdout(out):
+            iscli.stt(audio_file=str(audio_m4a), model_path=str(data_dir / "model"))
+        self.assertIn("transcript", out.getvalue())
+        self.assertTrue(captured, "mlx_whisper.transcribe was not called")
+        used_path = Path(captured[0])
+        self.assertEqual(used_path.suffix.lower(), ".wav", "Expected conversion to WAV via ffmpeg")
+        # temp converted file should be deleted by CLI after transcribe
+        self.assertFalse(used_path.exists(), "Temporary converted WAV was not cleaned up")
 
     def test_stt_on_sample_data_files_prints(self):
         """
@@ -182,31 +200,13 @@ class TestISCLISTT(unittest.TestCase):
         iscli = cli_module.ISCLI()
         sys.modules["mlx_whisper"] = make_mlx_stub("SAMPLE_TRANSCRIPT")
 
-        # Monkeypatch helper so .m4a won't invoke real ffmpeg
-        original_helper = cli_module.ISCLI._maybe_convert_m4a_to_wav_ffmpeg
-        try:
-            def fake_helper(_self, p: Path):
-                if p.suffix.lower() == ".m4a":
-                    # create temp "converted" wav in a temp dir
-                    with tempfile.TemporaryDirectory() as td:
-                        tmp_wav = Path(td) / "tmp.wav"
-                        tmp_wav.write_bytes(b"")
-                        # return a persistent path by copying to a real tmp file we manage
-                    # We cannot use context tmp here because cleanup happens after transcribe,
-                    # so create a NamedTemporaryFile-like persistent path:
-                    tmp_wav2 = Path(tempfile.gettempdir()) / f"converted_{p.stem}.wav"
-                    tmp_wav2.write_bytes(b"")
-                    return tmp_wav2, tmp_wav2
-                return p, None
-
-            cli_module.ISCLI._maybe_convert_m4a_to_wav_ffmpeg = fake_helper
-            for audio in sample_files:
-                out = io.StringIO()
-                with redirect_stdout(out):
-                    iscli.stt(audio_file=str(audio), model_path=str(data_dir / "model"))
-                self.assertIn("SAMPLE_TRANSCRIPT", out.getvalue())
-        finally:
-            cli_module.ISCLI._maybe_convert_m4a_to_wav_ffmpeg = original_helper
+        for audio in sample_files:
+            if audio.suffix.lower() == ".m4a" and shutil.which("ffmpeg") is None:
+                continue
+            out = io.StringIO()
+            with redirect_stdout(out):
+                iscli.stt(audio_file=str(audio), model_path=str(data_dir / "model"))
+            self.assertIn("SAMPLE_TRANSCRIPT", out.getvalue())
 
     def test_stt_on_sample_data_writes_file(self):
         """
@@ -225,29 +225,81 @@ class TestISCLISTT(unittest.TestCase):
         iscli = cli_module.ISCLI()
         sys.modules["mlx_whisper"] = make_mlx_stub("SAMPLE_FILE")
 
-        # Monkeypatch helper for .m4a
-        original_helper = cli_module.ISCLI._maybe_convert_m4a_to_wav_ffmpeg
-        try:
-            def fake_helper(_self, p: Path):
-                if p.suffix.lower() == ".m4a":
-                    tmp_wav = Path(tempfile.gettempdir()) / f"converted_{p.stem}.wav"
-                    tmp_wav.write_bytes(b"")
-                    return tmp_wav, tmp_wav
-                return p, None
-            cli_module.ISCLI._maybe_convert_m4a_to_wav_ffmpeg = fake_helper
+        chosen = None
+        for f in sample_files:
+            if f.suffix.lower() != ".m4a" or shutil.which("ffmpeg") is not None:
+                chosen = f
+                break
+        if chosen is None:
+            self.skipTest("No suitable sample file to write transcript (requires ffmpeg for m4a)")
 
-            with tempfile.TemporaryDirectory() as td:
-                td_path = Path(td)
-                out_txt = td_path / "out.txt"
+        with tempfile.TemporaryDirectory() as td:
+            td_path = Path(td)
+            out_txt = td_path / "out.txt"
+            iscli.stt(
+                audio_file=str(chosen),
+                model_path=str(data_dir / "model"),
+                output_file=str(out_txt),
+            )
+            self.assertTrue(out_txt.exists(), "Transcript file not written")
+            self.assertEqual(out_txt.read_text(encoding="utf-8"), "SAMPLE_FILE\n")
+
+    def test_stt_integration_matches_ground_truth_real_model(self):
+        """
+        Integration: run real mlx_whisper on available audio and compare to JSON ground truth.
+        Skips if mlx_whisper not importable, model path missing, or no suitable audio exists.
+        """
+        try:
+            import mlx_whisper  # noqa: F401
+        except Exception:
+            self.skipTest("mlx_whisper not importable")
+
+        from is_speech_cli.consts import DEFAULT_IS_MODEL_PATH
+
+        model_path = os.getenv("IS_SPEECH_CLI_IS_MODEL_PATH", DEFAULT_IS_MODEL_PATH)
+        model_path = str(Path(model_path).expanduser())
+        if not Path(model_path).exists():
+            self.skipTest("Whisper model path not found; set IS_SPEECH_CLI_IS_MODEL_PATH to enable")
+
+        data_dir, entries = self._load_ifa_entries()
+
+        expected_by_filename = {}
+        for item in entries:
+            if "Q_MP3" in item and "Q_IS" in item:
+                expected_by_filename[item["Q_MP3"]] = item["Q_IS"]
+            if "A_MP3" in item and "A_IS" in item:
+                expected_by_filename[item["A_MP3"]] = item["A_IS"]
+        pairs = []
+        for fname, exp in expected_by_filename.items():
+            fpath = data_dir / fname
+            if fpath.exists():
+                pairs.append((fpath, exp))
+        if not pairs:
+            self.skipTest("No matching audio files present on disk for JSON entries")
+
+        runnable = [
+            (p, exp) for (p, exp) in pairs
+            if p.suffix.lower() != ".m4a" or shutil.which("ffmpeg") is not None
+        ]
+        if not runnable:
+            self.skipTest("No suitable audio files to run (ffmpeg required for m4a)")
+
+        def normalize(s: str) -> str:
+            s = s.lower()
+            s = "".join(ch if (ch.isalnum() or ch.isspace()) else " " for ch in s)
+            return " ".join(s.split())
+
+        iscli = cli_module.ISCLI()
+        for audio_path, expected_text in runnable[:1]:
+            out = io.StringIO()
+            with redirect_stdout(out):
                 iscli.stt(
-                    audio_file=str(sample_files[0]),
-                    model_path=str(data_dir / "model"),
-                    output_file=str(out_txt),
+                    audio_file=str(audio_path),
+                    model_path=model_path,
                 )
-                self.assertTrue(out_txt.exists(), "Transcript file not written")
-                self.assertEqual(out_txt.read_text(encoding="utf-8"), "SAMPLE_FILE\n")
-        finally:
-            cli_module.ISCLI._maybe_convert_m4a_to_wav_ffmpeg = original_helper
+            detected = out.getvalue().strip()
+            self.assertTrue(detected, "No transcript produced")
+            self.assertEqual(normalize(detected), normalize(expected_text), f"Mismatch for {audio_path.name}")
 
 
 if __name__ == "__main__":

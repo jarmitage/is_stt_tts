@@ -25,6 +25,31 @@ uv pip install -e .
 
 This will provide a console command `is-speech`.
 
+## Environment and API keys
+
+Icespeak expects API credentials to live in a keys directory, configured via the environment variable `ICESPEAK_KEYS_DIR`. In this repo:
+
+- `.env` contains only one variable: `ICESPEAK_KEYS_DIR`
+- `keys/` is where your provider key files live (e.g., AWS Polly)
+- Both `.env` and `keys/` are gitignored
+
+Example `.env`:
+
+```bash
+# point to your absolute keys directory
+ICESPEAK_KEYS_DIR=/absolute/path/to/keys
+```
+
+Example layout:
+
+```bash
+keys/
+  AWSPollyServerKey.json
+  # ...other provider files required by Icespeak...
+```
+
+Note: Icespeak will read credentials from `ICESPEAK_KEYS_DIR`; this project does not check your keys into version control.
+
 ## Usage
 
 ### TTS (Dora)
@@ -49,8 +74,6 @@ is-speech stt --audio_file sample.mp3 --output_file sample.txt
 
 ## Notes
 - Playback uses `afplay` on macOS if available.
-- Default STT model path points to your local MLX Whisper IS model:
-  `/Users/jarm/Documents/work/code/learn/mlx-examples/whisper/mlx_models/is_large_is`.
-  Override with `--model_path` as needed.
+- Default STT model path points to your local MLX Whisper IS model: `IS_SPEECH_CLI_IS_MODEL_PATH`. Override with `--model_path` as needed.
 
 

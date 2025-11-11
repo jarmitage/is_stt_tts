@@ -14,7 +14,8 @@ keywords = ["tts", "stt", "icelandic", "speech", "cli", "whisper", "mlx", "icesp
 dependencies = [
   "fire>=0.6",
   "mlx-whisper>=0.4",
-  "icespeak>=0.1"
+  "icespeak>=0.1",
+  "pydantic~=2.8.0"
 ]
 
 [project.scripts]

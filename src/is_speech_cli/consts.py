@@ -16,10 +16,7 @@ DEFAULT_FILENAME = "output"
 
 # Paths and environment
 # Allow overriding model path via env; otherwise use the local path you provided.
-DEFAULT_IS_MODEL_PATH = os.getenv(
-    "IS_SPEECH_CLI_IS_MODEL_PATH",
-    "/Users/jarm/Documents/work/code/learn/mlx-examples/whisper/mlx_models/is_large_is",
-)
+DEFAULT_IS_MODEL_PATH = os.getenv("IS_SPEECH_CLI_IS_MODEL_PATH","")
 
 # Platform specifics / tools
 MACOS_PLAYBACK_CMD = "afplay"
