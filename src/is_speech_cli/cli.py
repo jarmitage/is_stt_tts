@@ -26,10 +26,8 @@ Usage examples:
 """
 from __future__ import annotations
 
-from dotenv import load_dotenv, find_dotenv
-load_dotenv(find_dotenv(usecwd=True))
-
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -47,7 +45,6 @@ from .consts import (
     DEFAULT_MODE,
     DEFAULT_OUTPUT_DIR,
     DEFAULT_FILENAME,
-    DEFAULT_IS_MODEL_PATH,
     MACOS_PLAYBACK_CMD,
     FFMPEG_CMD,
 )
@@ -59,13 +56,6 @@ def _validate_voice(voice: str) -> str:
         # Return canonical casing from SUPPORTED_VOICES
         return next(v for v in SUPPORTED_VOICES if v.lower() == lowered)
     raise ValueError(f"voice must be one of: {', '.join(sorted(SUPPORTED_VOICES))}")
-
-
-def _validate_mode(mode: str) -> str:
-    normalized = (mode or DEFAULT_MODE).strip().lower()
-    if normalized not in {m.lower() for m in SUPPORTED_MODES}:
-        raise ValueError(f"mode must be one of: {', '.join(sorted(SUPPORTED_MODES))}")
-    return normalized
 
 
 def _parse_modes(mode_arg: Any) -> set[str]:
@@ -255,7 +245,7 @@ class ISCLI:
     def stt(
         self,
         audio_file: str,
-        model_path: str = DEFAULT_IS_MODEL_PATH,
+        model_path: Optional[str] = None,
         output_file: Optional[str] = None,
         play: bool = False,
     ) -> None:
@@ -264,10 +254,17 @@ class ISCLI:
 
         Args:
             audio_file: Path to audio file (e.g. .mp3, .wav).
-            model_path: Path or HF repo to mlx whisper IS model.
+            model_path: Path or HF repo to mlx whisper IS model. If not provided, uses IS_STT_MODEL_PATH from .env.local.
             output_file: If set, write transcript to this file; otherwise print to stdout.
             play: If True, play the input audio when a non-empty transcript is printed/written.
         """
+        if not model_path:
+            from dotenv import load_dotenv
+            load_dotenv(".env.local")
+            model_path = os.getenv("IS_STT_MODEL_PATH")
+            if not model_path:
+                raise ValueError("No model_path provided and IS_STT_MODEL_PATH not set in .env.local")
+            print(f"Using model path from environment: {model_path}")
         import mlx_whisper
 
         audio_path = Path(audio_file).expanduser()

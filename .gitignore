@@ -1,6 +1,9 @@
 # .env
-.env
+# icespeak keys
+.env 
 keys
+# non-icespeak keys
+.env.local
 
 # data
 data/**/*.mp3

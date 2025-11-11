@@ -81,7 +81,7 @@ is-speech stt --audio_file sample.mp3 --output_file sample.txt
 
 ### STT (play input when transcript prints)
 ```bash
-is-speech stt --audio_file sample.mp3 --play
+is-speech stt --audio_file sample.mp3 --play True
 ```
 
 ## Notes
